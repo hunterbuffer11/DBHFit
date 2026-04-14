@@ -48,6 +48,7 @@ function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
     return @. ifelse(abs(r) <= c, one(T), T(c / abs(r)))
 end
 
+#fit_circle_lm
 """
     fit_circle_lm(x, y; max_iter=50, robust=true, huber_threshold=4.685, skip_validation=false) -> CircleFitResult
 

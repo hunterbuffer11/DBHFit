@@ -1,9 +1,13 @@
 """
-    algebraic_initial_guess(x, y) -> SVector{3}
+    1.algebraic_initial_guess(x, y) -> SVector{3}
+    2.fit_circle_ls(x, y; kwargs...) -> CircleFitResult
 
-Compute initial estimate of a circle using the algebraic method (Kåsa method)
-:lm method will use the function to calculate the initial guess of circle parameters.
+First,Compute initial estimate of a circle using the algebraic method (Kåsa method).only for reference to the function fit_circle_ls.
+Second,use the :lm method to fit the circle(Nonlinear least squares circle fitting).
+"""
 
+#1.algebraic_initial_guess
+"""
 # Parameters
 
 - `x, y`: Coordinate vectors of points
@@ -12,9 +16,6 @@ Compute initial estimate of a circle using the algebraic method (Kåsa method)
 
 - `SVector{3}`: [center_x, center_y, radius]
 
-# Algorithm
-
-Uses the Kåsa algebraic method to solve for circle parameters by minimizing the algebraic distance.
 """
 function algebraic_initial_guess(x::AbstractVector{T}, 
                                  y::AbstractVector{T}) where T<:Real
@@ -51,6 +52,7 @@ function algebraic_initial_guess(x::AbstractVector{T},
     return SVector{3,T}(xc, yc, r)
 end
 
+#2.fit_circle_ls
 """
     fit_circle_ls(x, y; skip_validation=false) -> CircleFitResult
 
@@ -73,7 +75,6 @@ function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T};
     
     n = length(x)
     
-    # Validate input
     Sx = Sy = Sxx = Sxy = Syy = Sxz = Syz = Sz = zero(T)
     
     @inbounds for i in 1:n

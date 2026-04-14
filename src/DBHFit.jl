@@ -49,11 +49,10 @@ include("lm.jl")
 include("ransac.jl")
 
 """
+Unified entry function for DBH fitting.
     fit_dbh(x::AbstractVector, y::AbstractVector; method, skip_validation=false, kwargs...) -> CircleFitResult
     fit_dbh(points::AbstractVector{<:Point2D}; method, skip_validation=false, kwargs...) -> CircleFitResult
     fit_dbh(x, y, config::FitConfig) -> CircleFitResult
-
-Unified entry function for DBH fitting.
 
 # Parameters
 

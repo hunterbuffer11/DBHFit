@@ -170,6 +170,7 @@ function _ransac_core(x::AbstractVector{T}, y::AbstractVector{T};
                           rmse, :ransac)
 end
 
+#fit_circle_ransac
 """
     fit_circle_ransac(x, y; max_trials=nothing, threshold=0.01, min_inliers=nothing, optimize=false, optimize_metric=:rmse, skip_validation=false) -> CircleFitResult
 
