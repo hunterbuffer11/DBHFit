@@ -1,16 +1,14 @@
 """
     fit_circle_three_points(x1, y1, x2, y2, x3, y3)
 
-通过三点确定圆。
+Fit a circle through three points.
 
-# 参数
+# Parameters
+- `x1, y1, x2, y2, x3, y3`: Coordinates of three points
 
-- `x1, y1, x2, y2, x3, y3`: 三个点的坐标
-
-# 返回
-
+# Returns
 - `Tuple{Float64, Float64, Float64}`: (center_x, center_y, radius)
-- 如果三点共线，返回 (0.0, 0.0, -1.0)
+- Returns (0.0, 0.0, -1.0) if points are collinear
 """
 function fit_circle_three_points(x1::T, y1::T, x2::T, y2::T, 
                                  x3::T, y3::T) where T<:Real
@@ -33,17 +31,15 @@ end
 """
     find_inliers(x, y, cx, cy, r, threshold)
 
-找出圆的内点。
+Find inliers for a circle.
 
-# 参数
+# Parameters
+- `x, y`: Point coordinates
+- `cx, cy, r`: Circle parameters
+- `threshold`: Distance threshold
 
-- `x, y`: 点的坐标
-- `cx, cy, r`: 圆的参数
-- `threshold`: 距离阈值
-
-# 返回
-
-- `Tuple{Int, Vector{Int}}`: (内点数量, 内点索引)
+# Returns
+- `Tuple{Int, Vector{Int}}`: (inlier_count, inlier_indices)
 """
 function find_inliers(x::AbstractVector{T}, y::AbstractVector{T}, 
                       cx::Real, cy::Real, r::Real, 
@@ -64,17 +60,15 @@ end
 """
     _optimize_ransac_params_bayesian(x, y; optimize_metric=:rmse, n_iterations=100)
 
-使用贝叶斯优化（BOHB）自动选择RANSAC参数。
-参数范围根据点云数量自动设定。
+Optimize RANSAC parameters using Bayesian optimization (BOHB).
+Parameter ranges are automatically set based on point cloud size.
 
-# 参数
+# Parameters
+- `x, y`: Point coordinates
+- `optimize_metric`: Optimization metric (:rmse or :mae)
+- `n_iterations`: Number of optimization iterations
 
-- `x, y`: 点的坐标向量
-- `optimize_metric`: 优化指标 (:rmse 或 :mae)
-- `n_iterations`: 优化迭代次数
-
-# 返回
-
+# Returns
 - `NamedTuple`: (max_trials, min_inliers, score)
 """
 function _optimize_ransac_params_bayesian(x::AbstractVector{T}, y::AbstractVector{T};
@@ -82,11 +76,9 @@ function _optimize_ransac_params_bayesian(x::AbstractVector{T}, y::AbstractVecto
                                           n_iterations::Int=100) where T<:Real
     n = length(x)
     
-    # 根据点云数量设定参数范围
     max_trials_range = (50, 500)
     min_samples_range = (max(3, ceil(Int, 0.05*n)), max(3, ceil(Int, 0.15*n)))
     
-    # 定义损失函数
     function loss_function(max_trials, min_samples)
         try
             result = _ransac_core(x, y; 
@@ -102,14 +94,13 @@ function _optimize_ransac_params_bayesian(x::AbstractVector{T}, y::AbstractVecto
             elseif optimize_metric == :mae
                 return calculate_mae(x, y, result.center_x, result.center_y, result.radius)
             else
-                error("未知的优化指标: $(optimize_metric)")
+                error("Unknown optimization metric: $(optimize_metric)")
             end
         catch
             return Inf
         end
     end
     
-    # 使用Hyperopt进行贝叶斯优化
     ho = Hyperopt.@hyperopt for i = n_iterations, sampler = Hyperopt.BOHB(),
         max_trials = round.(Int, Hyperopt.exp10.(LinRange(log10(max_trials_range[1]), 
                                                           log10(max_trials_range[2]), 20))),
@@ -128,7 +119,7 @@ end
 """
     _ransac_core(x, y; max_trials, threshold, min_inliers) -> CircleFitResult or nothing
 
-RANSAC核心算法，不含参数验证和优化逻辑。
+Core RANSAC algorithm without parameter validation and optimization logic.
 """
 function _ransac_core(x::AbstractVector{T}, y::AbstractVector{T};
                       max_trials::Int, 
@@ -182,35 +173,31 @@ end
 """
     fit_circle_ransac(x, y; max_trials=nothing, threshold=0.01, min_inliers=nothing, optimize=false, optimize_metric=:rmse, skip_validation=false) -> CircleFitResult
 
-使用RANSAC算法拟合圆。
+Fit a circle using RANSAC algorithm.
 
-# 参数
+# Parameters
+- `x, y`: Point coordinates
+- `max_trials`: Maximum number of iterations (must specify or enable optimize)
+- `threshold`: Inlier distance threshold (default 0.01)
+- `min_inliers`: Minimum number of inliers (must specify or enable optimize)
+- `optimize`: Whether to auto-optimize parameters (default false)
+- `optimize_metric`: Optimization metric (default :rmse, optional :mae)
+- `skip_validation`: Whether to skip input validation (default false)
 
-- `x, y`: 点的坐标向量
-- `max_trials`: 最大迭代次数（必须指定或开启optimize）
-- `threshold`: 内点判定阈值（默认0.01）
-- `min_inliers`: 最小内点数（必须指定或开启optimize）
-- `optimize`: 是否自动优化参数（默认false）
-- `optimize_metric`: 优化指标（默认:rmse，可选:mae）
-- `skip_validation`: 是否跳过输入验证（默认false）
+# Returns
+- `CircleFitResult`: Fitting result
 
-# 返回
+# Notes
+Must satisfy one of:
+1. Specify both `max_trials` and `min_inliers`
+2. Set `optimize=true` to auto-optimize parameters
 
-- `CircleFitResult`: 拟合结果
-
-# 注意
-
-必须满足以下条件之一：
-1. 同时指定 `max_trials` 和 `min_inliers`
-2. 设置 `optimize=true` 自动优化参数
-
-# 示例
-
+# Examples
 ```julia
-# 方式1：手动指定参数
+# Method 1: Manual parameters
 result = fit_circle_ransac(x, y; max_trials=200, min_inliers=50)
 
-# 方式2：自动优化参数
+# Method 2: Auto-optimization
 result = fit_circle_ransac(x, y; optimize=true, optimize_metric=:rmse)
 ```
 """
@@ -222,28 +209,24 @@ function fit_circle_ransac(x::AbstractVector{T}, y::AbstractVector{T};
                            optimize_metric::Symbol=:rmse,
                            skip_validation::Bool=false,
                            kwargs...) where T<:Real
-    # 验证输入
     validate_input(x, y; skip_validation=skip_validation)
     
     n = length(x)
     
-    # 参数验证：必须指定参数或开启优化
     if !optimize
         if max_trials === nothing || min_inliers === nothing
-            throw(ArgumentError("必须指定 max_trials 和 min_inliers 参数，或设置 optimize=true 自动优化"))
+            throw(ArgumentError("Must specify max_trials and min_inliers, or set optimize=true"))
         end
     else
-        # 自动优化参数
         opt_params = _optimize_ransac_params_bayesian(x, y; optimize_metric=optimize_metric)
         max_trials = opt_params.max_trials
         min_inliers = opt_params.min_inliers
     end
     
-    # 执行RANSAC
     result = _ransac_core(x, y; max_trials=max_trials, threshold=threshold, min_inliers=min_inliers)
     
     if result === nothing
-        throw(ErrorException("RANSAC未能找到足够的内点（需要$(min_inliers)个）"))
+        throw(ErrorException("RANSAC failed to find enough inliers (need $(min_inliers))"))
     end
     
     return result

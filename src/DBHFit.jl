@@ -1,15 +1,14 @@
 """
     DBHFit
 
-专业的胸径(DBH)拟合Julia包，提供多种圆拟合算法用于林业点云数据处理。
+Professional DBH (Diameter at Breast Height) fitting Julia package, providing multiple circle fitting algorithms for forestry point cloud data processing.
 
-# 主要功能
+# Main Features
 
-- 三种拟合算法: 最小二乘法(LS)、Levenberg-Marquardt(LM)、RANSAC
-- 统一API: fit_dbh 函数提供统一接口
-- 可选可视化: 支持Plots.jl可视化结果
+- Three fitting algorithms: Least Squares (LS), Levenberg-Marquardt (LM), RANSAC
+- Unified API: `fit_dbh` function provides a unified interface
+- Optional visualization: Supports Plots.jl for visualizing results
 
-详细信息请查看README.md文档。
 """
 module DBHFit
 
@@ -19,13 +18,13 @@ using Statistics
 using Random
 using Hyperopt
 
-# 导出公共API
+# Export public API
 """
     plot_fit(x, y, result; kwargs...)
 
-绘制拟合结果可视化图形。
+Plot visualization graphics of the fitting result.
 
-需要加载 Plots.jl 包才能使用此功能：
+The Plots.jl package is required to use this feature:
 ```julia
 using Plots
 using DBHFit
@@ -35,14 +34,14 @@ plot_fit(x, y, result)
 """
 function plot_fit end
 
-# 导出公共API
+# Export public API
 export CircleFitResult, Point2D, FitConfig
 export fit_dbh, fit_circle_ls, fit_circle_lm, fit_circle_ransac
 export plot_fit
 export calculate_rmse, calculate_mae
 export validate_input
 
-# 包含源文件
+# Include source files
 include("types.jl")
 include("utils.jl")
 include("algebraic.jl")
@@ -54,50 +53,38 @@ include("ransac.jl")
     fit_dbh(points::AbstractVector{<:Point2D}; method, skip_validation=false, kwargs...) -> CircleFitResult
     fit_dbh(x, y, config::FitConfig) -> CircleFitResult
 
-统一的胸径拟合入口函数。
+Unified entry function for DBH fitting.
 
-# 参数
+# Parameters
 
-- `x, y`: 点的坐标向量
-- `points`: Point2D向量
-- `config`: FitConfig配置对象
-- `method`: 拟合方法，**必须指定**，可选 :ls, :lm, :ransac
-- `skip_validation`: 是否跳过输入验证（默认false，设为true可提高处理速度）
-- `kwargs...`: 传递给具体拟合方法的参数
+- x, y: Coordinate vectors of points
 
-# 返回
+- points: Vector of Point2D
 
-- `CircleFitResult`: 包含圆心、半径、胸径等信息的结构体
+- config: FitConfig configuration object
 
-# 示例
+- method: Fitting method, must be specified, options: :ls, :lm, :ransac
 
-```julia
-# LS方法
-result = fit_dbh(x, y; method=:ls)
+- skip_validation: Whether to skip input validation (default false, set to true to increase processing speed)
 
-# LM方法
-result = fit_dbh(x, y; method=:lm, robust=true)
+- kwargs...: Arguments passed to the specific fitting method
 
-# RANSAC方法（必须指定参数）
-result = fit_dbh(x, y; method=:ransac, max_trials=200, min_inliers=50)
-
-# 跳过验证以提高速度（数据已预处理时）
-result = fit_dbh(x, y; method=:ls, skip_validation=true)
-```
+# Returns
+- CircleFitResult: Structure containing center, radius, DBH and other information
 """
 function fit_dbh(x::AbstractVector{T}, y::AbstractVector{T}; 
                  method::Union{Symbol,Nothing}=nothing,
                  skip_validation::Bool=false,
                  kwargs...) where T<:Real
-    # 验证输入
+    # Validate input
     validate_input(x, y; skip_validation=skip_validation)
     
-    # method 必须指定
+    # method must be specified
     if method === nothing
-        throw(ArgumentError("必须指定 method 参数。可选: :ls, :lm, :ransac"))
+        throw(ArgumentError("The method parameter must be specified. Options: :ls, :lm, :ransac"))
     end
     
-    # 调用具体的拟合方法（已验证，跳过子函数验证）
+    # Call the specific fitting method
     if method == :ls
         return fit_circle_ls(x, y; skip_validation=true, kwargs...)
     elseif method == :lm
@@ -105,7 +92,7 @@ function fit_dbh(x::AbstractVector{T}, y::AbstractVector{T};
     elseif method == :ransac
         return fit_circle_ransac(x, y; skip_validation=true, kwargs...)
     else
-        throw(ArgumentError("未知的拟合方法: $(method)。可选: :ls, :lm, :ransac"))
+        throw(ArgumentError("Unknown fitting method: $(method). Options: :ls, :lm, :ransac"))
     end
 end
 

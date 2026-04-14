@@ -1,16 +1,15 @@
 """
     CircleFitResult{T<:Real}
 
-圆拟合结果，包含圆心、半径和拟合质量信息。
+Circle fitting result containing center, radius and fitting quality information.
 
-# 字段
-
-- `center_x::T`: 圆心X坐标
-- `center_y::T`: 圆心Y坐标
-- `radius::T`: 圆的半径
-- `dbh::T`: 胸径（直径，等于2*radius）
-- `rmse::T`: 拟合误差（均方根误差）
-- `method::Symbol`: 拟合方法（:ls, :lm, :ransac）
+# Parameters
+- `center_x::T`: Circle center X coordinate
+- `center_y::T`: Circle center Y coordinate
+- `radius::T`: Circle radius
+- `dbh::T`: Diameter at Breast Height (equals 2*radius)
+- `rmse::T`: Root Mean Square Error of fitting
+- `method::Symbol`: Fitting method (:ls, :lm, :ransac)
 """
 struct CircleFitResult{T<:Real}
     center_x::T
@@ -22,9 +21,9 @@ struct CircleFitResult{T<:Real}
 end
 
 """
-    CircleFitResult(center_x, center_y, radius, rmse, inliers, method)
+    CircleFitResult(center_x, center_y, radius, rmse, method)
 
-构造CircleFitResult，自动计算dbh。
+Construct CircleFitResult, automatically calculates dbh.
 """
 function CircleFitResult(center_x::T, center_y::T, radius::T, 
                          rmse::T, method::Symbol) where T<:Real
@@ -34,12 +33,11 @@ end
 """
     Point2D{T<:Real}
 
-二维点数据结构。
+2D point data structure.
 
-# 字段
-
-- `x::T`: X坐标
-- `y::T`: Y坐标
+# Parameters
+- `x::T`: X coordinate
+- `y::T`: Y coordinate
 """
 struct Point2D{T<:Real}
     x::T
@@ -49,16 +47,15 @@ end
 """
     FitConfig
 
-拟合配置参数。
+Fitting configuration parameters.
 
-# 字段
-
-- `method::Symbol`: 拟合方法（:ls, :lm, :ransac）**必须指定**
-- `robust::Union{Bool,Nothing}`: 是否使用鲁棒拟合
-- `max_iter::Union{Int,Nothing}`: 最大迭代次数
-- `threshold::Union{Float64,Nothing}`: RANSAC阈值
-- `min_inliers::Union{Int,Nothing}`: 最小内点数
-- `max_trials::Union{Int,Nothing}`: RANSAC最大迭代次数
+# Parameters
+- `method::Symbol`: Fitting method (:ls, :lm, :ransac) **must specify**
+- `robust::Union{Bool,Nothing}`: Whether to use robust fitting
+- `max_iter::Union{Int,Nothing}`: Maximum number of iterations
+- `threshold::Union{Float64,Nothing}`: RANSAC threshold
+- `min_inliers::Union{Int,Nothing}`: Minimum number of inliers
+- `max_trials::Union{Int,Nothing}`: RANSAC maximum number of trials
 """
 struct FitConfig
     method::Symbol
@@ -73,7 +70,7 @@ end
     FitConfig(method; robust=nothing, max_iter=nothing, threshold=nothing, 
               min_inliers=nothing, max_trials=nothing)
 
-构造FitConfig，method参数必须指定。
+Construct FitConfig, method parameter must be specified.
 """
 function FitConfig(method::Symbol; 
                     robust::Union{Bool,Nothing}=nothing,

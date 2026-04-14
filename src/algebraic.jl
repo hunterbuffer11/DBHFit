@@ -1,34 +1,34 @@
 """
     algebraic_initial_guess(x, y) -> SVector{3}
 
-使用代数方法（Kåsa方法）计算圆的初始估计。
+Compute initial estimate of a circle using the algebraic method (Kåsa method)
+:lm method will use the function to calculate the initial guess of circle parameters.
 
-# 参数
+# Parameters
 
-- `x, y`: 点的坐标向量
+- `x, y`: Coordinate vectors of points
 
-# 返回
+# Returns
 
 - `SVector{3}`: [center_x, center_y, radius]
 
-# 算法
+# Algorithm
 
-使用Kåsa代数方法，通过最小化代数距离求解圆参数。
-该方法速度快，但对噪声敏感，适合作为其他方法的初值。
+Uses the Kåsa algebraic method to solve for circle parameters by minimizing the algebraic distance.
 """
 function algebraic_initial_guess(x::AbstractVector{T}, 
                                  y::AbstractVector{T}) where T<:Real
     n = length(x)
     
-    # 计算质心
+    # Calculate centroid
     mx = sum(x) / n
     my = sum(y) / n
     
-    # 中心化坐标
+    # Centered coordinates
     u = x .- mx
     v = y .- my
     
-    # 计算累加项
+    # Calculate sums for the linear system
     Suu = sum(u.^2)
     Svv = sum(v.^2)
     Suv = sum(u .* v)
@@ -37,14 +37,13 @@ function algebraic_initial_guess(x::AbstractVector{T},
     Suvv = sum(u .* v.^2)
     Svuu = sum(v .* u.^2)
     
-    # 构建线性方程组
+    # Construct a system of linear equations
     A = SMatrix{2,2,T}(Suu, Suv, Suv, Svv)
     b = SVector{2,T}(0.5 * (Suuu + Suvv), 0.5 * (Svvv + Svuu))
     
-    # 求解
+    # solve the linear system
     uc, vc = A \ b
     
-    # 计算圆心和半径
     xc = uc + mx
     yc = vc + my
     r = sqrt(uc^2 + vc^2 + (Suu + Svv) / n)
@@ -55,30 +54,26 @@ end
 """
     fit_circle_ls(x, y; skip_validation=false) -> CircleFitResult
 
-使用最小二乘法拟合圆。
+Fit a circle using the least squares method.
 
-# 参数
+# Parameters
 
-- `x, y`: 点的坐标向量
-- `skip_validation`: 是否跳过输入验证（默认false）
+- `x, y`: Coordinate vectors of points
+- `skip_validation`: Whether to skip input validation (default false)
 
-# 返回
+# Returns
 
-- `CircleFitResult`: 拟合结果
+- `CircleFitResult`: Fitting result
 
-# 算法
-
-使用Kåsa代数方法，通过最小化代数距离求解圆参数。
-该方法计算速度快，适合作为初值或对精度要求不高的场景。
 """
 function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T}; 
                        skip_validation::Bool=false, kwargs...) where T<:Real
-    # 验证输入
+    # Validate input
     validate_input(x, y; skip_validation=skip_validation)
     
     n = length(x)
     
-    # 初始化累加器
+    # Validate input
     Sx = Sy = Sxx = Sxy = Syy = Sxz = Syz = Sz = zero(T)
     
     @inbounds for i in 1:n
@@ -97,7 +92,7 @@ function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T};
         Sz  += zi
     end
     
-    # 构建正规方程
+    # Build normal equations
     AtA = zeros(MMatrix{3,3,T,9})
     Atz = zeros(MVector{3,T})
     
@@ -112,19 +107,19 @@ function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T};
     Atz[2] = 2*Syz
     Atz[3] = Sz
     
-    # 对称填充
+    # Fill symmetrically
     AtA[2,1] = AtA[1,2]
     AtA[3,1] = AtA[1,3]
     AtA[3,2] = AtA[2,3]
     
-    # 求解
+    # Solve
     a, b, c = AtA \ Atz
     
-    # 计算半径
+    # Calculate the radius
     val = c + a*a + b*b
     R = val > 0 ? sqrt(val) : zero(T)
     
-    # 计算误差
+    # Compute error
     rmse = calculate_rmse(x, y, a, b, R)
     
     return CircleFitResult(a, b, R, rmse, :ls)

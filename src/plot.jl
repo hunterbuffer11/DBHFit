@@ -1,23 +1,23 @@
 """
     plot_fit(x, y, result; kwargs...)
 
-绘制拟合结果可视化图形。
+Plot visualization graphics of the fitting result.
 
-# 参数
+# Arguments
 
-- `x, y`: 点的坐标
-- `result`: CircleFitResult拟合结果
-- `kwargs...`: 传递给Plots.plot的参数
+- `x, y`: Coordinates of points
+- `result`: CircleFitResult fitting result
+- `kwargs...`: Arguments passed to Plots.plot
 
-# 返回
+# Returns
 
-- `Plots.Plot`: 图形对象
+- `Plots.Plot`: Plot object
 
-# 注意
+# Note
 
-需要安装Plots.jl包
+The Plots.jl package needs to be installed
 """
 function plot_fit end
 
-# 可视化函数的实际实现在扩展中
-# 这里只是一个占位符，实际功能需要Plots.jl
+# The actual implementation of the visualization function is in an extension
+# This is just a placeholder, actual functionality requires Plots.jl
