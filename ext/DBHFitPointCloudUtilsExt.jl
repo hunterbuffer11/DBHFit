@@ -1,5 +1,6 @@
 # DBHFit PointCloudUtils Ext
-
+# I can directly process point cloud data of the PointCloud type in DBHFit
+# Usually, you can ignore this module.
 module DBHFitPointCloudUtilsExt
 
 using DBHFit
