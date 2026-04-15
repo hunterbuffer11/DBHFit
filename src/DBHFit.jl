@@ -101,16 +101,4 @@ function fit_dbh(points::AbstractVector{<:Point2D}; kwargs...)
     return fit_dbh(x, y; kwargs...)
 end
 
-function fit_dbh(x::AbstractVector{T}, y::AbstractVector{T}, 
-                 config::FitConfig) where T<:Real
-    kwargs = Dict{Symbol,Any}()
-    config.robust !== nothing && (kwargs[:robust] = config.robust)
-    config.max_iter !== nothing && (kwargs[:max_iter] = config.max_iter)
-    config.threshold !== nothing && (kwargs[:threshold] = config.threshold)
-    config.min_inliers !== nothing && (kwargs[:min_inliers] = config.min_inliers)
-    config.max_trials !== nothing && (kwargs[:max_trials] = config.max_trials)
-    
-    return fit_dbh(x, y; method=config.method, kwargs...)
-end
-
 end # module
