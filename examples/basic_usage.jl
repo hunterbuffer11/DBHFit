@@ -3,17 +3,13 @@ using Plots
 using DBHFit 
 
 # PointCloudUtils is my package for point cloud processing.
-# You can use the DataFrames and CSV package instead of PointCloudUtils,such as:
-#using DataFrames
-#using CSV
-#df = CSV.read("YOUR DATA.csv")
 
 
-# Loading point cloud data
+# Loading point cloud data(CSV file)
 # PointCloudUtils will return a struct PointCloud
 # such as Point1.x, Point1.y, Point1.z are the Vector of point cloud data
 # So when you use fit_dbh, you need to pass the Vector of x, y, z as the input
-Point1 = load_pointcloud("YOUR DATA")
+Point1 = load_pointcloud("YOUR DATA.csv")
 
 # Extract DBH region(1.3m)
 Point_1_dbh = extract_dbh(Point1, 1.2, 1.4)
