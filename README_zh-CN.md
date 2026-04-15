@@ -1,14 +1,17 @@
+<div align="center">
+
 # DBHFit.jl
 
 **专业的胸径(DBH)拟合Julia包**
+
 [![Julia](https://img.shields.io/badge/Julia-1.6+-purple.svg)](https://julialang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[**English**](README.md) | **中文文档**
 
-[English](README.md) | 中文文档
+提供圆拟合算法用于林业点云中单木胸径以及树干直径的估算
 
-提供圆拟合算法用于林业点云中单木胸径以及树干直径的估算。
-
+</div>
 
 ---
 
@@ -44,7 +47,9 @@ println("胸径: $(result.dbh)")
 ```
 
 ## 📖 使用指南
+
 更多示例代码请参考 [examples](/examples) 目录。
+
 ### 拟合方法
 
 #### 线性最小二乘法 (LS)
@@ -55,18 +60,18 @@ result = fit_dbh(x, y; method=:ls)
 #### 非线性最小二乘法 (LM)
 ```julia
 result = fit_dbh(x, y; method=:lm, max_iter=50, robust=true)
-# 支持 Huber 鲁棒权重。
+# 支持 Huber 鲁棒权重
 ```
 
 #### RANSAC
 ```julia
 # 手动参数
-result = fit_dbh(x, y; method=:ransac, max_trials=200, 
+result = fit_dbh(x, y; method=:ransac, max_trials=200,
                  min_inliers=50, threshold=0.01)
 
 # 自动优化参数
 result = fit_dbh(x, y; method=:ransac, optimize=true)
-# 对离群点鲁棒，适合噪声数据。
+# 对离群点鲁棒，适合噪声数据
 ```
 
 ### 结果类型
@@ -86,7 +91,7 @@ end
 
 ```julia
 # Point2D 输入
-points = [Point2D(0.0, 1.0), Point2D(1.0, 0.0), 
+points = [Point2D(0.0, 1.0), Point2D(1.0, 0.0),
          Point2D(0.0, -1.0), Point2D(-1.0, 0.0)]
 result = fit_dbh(points; method=:ls)
 
@@ -107,9 +112,9 @@ savefig(p, "fitting_result.png")
 - 点是否大量重合
 
 ## 👍 推荐方法
-- 通常情况下，胸径位置点云质量良好，推荐使用线性最小二乘法 (LS)
-- 如果存在过多离群点，推荐使用RANSAC算法。RANSAC参数可以使用贝叶斯优化自动估计。由参数 `optimize=true,optimize_metric = :mae` 控制，其中推荐使用MAE参数而不是RMSE参数，可以提供更稳定的估计。
 
+- 通常情况下，胸径位置点云质量良好，推荐使用线性最小二乘法 (LS)
+- 如果存在过多离群点，推荐使用RANSAC算法。RANSAC参数可以使用贝叶斯优化自动估计。由参数 `optimize=true, optimize_metric=:mae` 控制，其中推荐使用MAE参数而不是RMSE参数，可以提供更稳定的估计。
 
 ## 📄 许可证
 
@@ -117,7 +122,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ## 👤 作者
 
-Hunter 
+Hunter
 
 ## 🙏 致谢
 
