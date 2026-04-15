@@ -1,5 +1,3 @@
-<div align="center">
-
 # DBHFit.jl
 
 **专业的胸径(DBH)拟合Julia包**

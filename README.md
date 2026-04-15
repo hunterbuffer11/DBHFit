@@ -1,5 +1,3 @@
-<div align="center">
-
 # DBHFit.jl
 
 **Professional DBH Fitting Julia Package**
