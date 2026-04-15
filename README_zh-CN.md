@@ -3,25 +3,23 @@
 # DBHFit.jl
 
 **专业的胸径(DBH)拟合Julia包**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Julia](https://img.shields.io/badge/Julia-1.6+-purple.svg)](https://julialang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 [English](README.md) | 中文文档
 
-提供多种圆拟合算法用于林业点云数据处理
+提供圆拟合算法用于林业点云中单木胸径以及树干直径的估算。
 
-</div>
 
 ---
 
 ## ✨ 核心特性
 
-- 🎯 **三种拟合算法** - 最小二乘法(LS)、Levenberg-Marquardt(LM)、RANSAC
-- 🔧 **统一API** - 单一 `fit_dbh` 函数接口，简单易用
-- 🤖 **智能优化** - Hyperopt.jl 自动优化 RANSAC 参数
-- 🛡️ **鲁棒拟合** - Huber 权重抵抗离群点
-- 📊 **可视化支持** - Plots.jl 可视化扩展
+- 🎯 **三种拟合算法** - 线性最小二乘法拟合圆(LS)、非线性最小二乘法拟合圆(Levenberg-Marquardt)、RANSAC拟合圆
+- 🔧 **统一API** - 单一 `fit_dbh` 函数接口
+- 🤖 **RANSAC优化** - 利用Hyperopt包实现贝叶斯优化，为RANSAC提供自动参数
+- 📊 **可视化支持** - Plots 可视化扩展
 
 ## 📦 安装
 
@@ -48,20 +46,19 @@ println("胸径: $(result.dbh)")
 ```
 
 ## 📖 使用指南
-
+更多示例代码请参考 [examples](/examples) 目录。
 ### 拟合方法
 
-#### 最小二乘法 (LS)
+#### 线性最小二乘法 (LS)
 ```julia
 result = fit_dbh(x, y; method=:ls)
 ```
-快速代数方法，适合初值估计和高质量数据。
 
-#### Levenberg-Marquardt (LM)
+#### 非线性最小二乘法 (LM)
 ```julia
 result = fit_dbh(x, y; method=:lm, max_iter=50, robust=true)
+# 支持 Huber 鲁棒权重。
 ```
-高精度拟合，支持 Huber 鲁棒权重，适合一般场景。
 
 #### RANSAC
 ```julia
@@ -71,8 +68,8 @@ result = fit_dbh(x, y; method=:ransac, max_trials=200,
 
 # 自动优化参数
 result = fit_dbh(x, y; method=:ransac, optimize=true)
+# 对离群点鲁棒，适合噪声数据。
 ```
-对离群点鲁棒，适合噪声数据。
 
 ### 结果类型
 
@@ -87,17 +84,13 @@ struct CircleFitResult
 end
 ```
 
-### 高级用法
+### 其他用法
 
 ```julia
 # Point2D 输入
 points = [Point2D(0.0, 1.0), Point2D(1.0, 0.0), 
          Point2D(0.0, -1.0), Point2D(-1.0, 0.0)]
 result = fit_dbh(points; method=:ls)
-
-# 配置对象
-config = FitConfig(:lm; max_iter=100, robust=true)
-result = fit_dbh(x, y, config)
 
 # 可视化
 using Plots
@@ -106,34 +99,19 @@ p = plot_fit(x, y, result)
 savefig(p, "fitting_result.png")
 ```
 
-## ⚙️ 性能优化
-
-- `@inbounds` 优化循环
-- `StaticArrays` 优化小矩阵运算
-- 类型稳定实现
-- LM 方法使用栈分配减少内存开销
-
 ## ✅ 数据验证
 
 自动检查输入数据：
-- 向量长度相等
+- 向量长度是否相等
 - 至少 3 个点
-- 无 NaN/Inf 值
-- 点不共线
-- 点不重合
+- 是否无 NaN/Inf 值
+- 点是否共线
+- 点是否大量重合
 
-## 🔧 开发
+## 👍 推荐方法
+- 通常情况下，胸径位置点云质量良好，推荐使用线性最小二乘法 (LS)
+- 如果存在过多离群点，推荐使用RANSAC算法。RANSAC参数可以使用贝叶斯优化自动估计。由参数 `optimize=true,optimize_metric = :mae` 控制，其中推荐使用MAE参数而不是RMSE参数，可以提供更稳定的估计。
 
-```julia
-# 运行测试
-using Pkg
-Pkg.activate(".")
-Pkg.test()
-
-# 格式化代码
-using JuliaFormatter
-format("src/")
-```
 
 ## 📄 许可证
 
@@ -141,8 +119,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ## 👤 作者
 
-Hunter
+Hunter 
 
 ## 🙏 致谢
 
-感谢 Julia 社区和所有贡献者！
+感谢 Julia 社区和所有贡献者！并欢迎任何指出问题或建议。
