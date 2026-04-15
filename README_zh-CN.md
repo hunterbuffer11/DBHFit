@@ -102,6 +102,20 @@ p = plot_fit(x, y, result)
 savefig(p, "fitting_result.png")
 ```
 
+## 📊 结果对比
+
+### 拟合方法对比
+
+<div align="center">
+<img src="examples/Result1.png" width="45%" alt="结果 1">
+<img src="examples/Result2.png" width="45%" alt="结果 2">
+</div>
+
+<!-- 
+- Result1.png: 在良好点云质量下，三种方法拟合的结果通常相同（LM和RANSAC为例）
+- Result2.png: 在存在离群点的情况下，RANSAC方法可以提供更稳定的估计（LS和RANSAC为例）
+-->
+
 ## ✅ 数据验证
 
 自动检查输入数据：
