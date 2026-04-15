@@ -111,11 +111,10 @@ savefig(p, "fitting_result.png")
 <img src="examples/Result2.png" width="45%" alt="Result 2">
 </div>
 
-<!-- 
-Result1.png: Under good point cloud quality, the fitting results of the three methods are usually the same (using LM and RANSAC as examples).
+- Result1.png: Under good point cloud quality, the fitting results of the three methods are usually the same (using LM and RANSAC as examples).
 
-Result2.png: In the presence of outliers, the RANSAC method can provide a more stable estimation (using LS and RANSAC as examples).
--->
+- Result2.png: In the presence of outliers, the RANSAC method can provide a more stable estimation (using LS and RANSAC as examples).
+
 
 ## ✅ Validation
 

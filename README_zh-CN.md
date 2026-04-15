@@ -111,10 +111,10 @@ savefig(p, "fitting_result.png")
 <img src="examples/Result2.png" width="45%" alt="结果 2">
 </div>
 
-<!-- 
 - Result1.png: 在良好点云质量下，三种方法拟合的结果通常相同（LM和RANSAC为例）
+
 - Result2.png: 在存在离群点的情况下，RANSAC方法可以提供更稳定的估计（LS和RANSAC为例）
--->
+
 
 ## ✅ 数据验证
 
