@@ -35,7 +35,7 @@ plot_fit(x, y, result)
 function plot_fit end
 
 # Export public API
-export CircleFitResult, Point2D, FitConfig
+export CircleFitResult, Point2D
 export fit_dbh, fit_circle_ls, fit_circle_lm, fit_circle_ransac
 export plot_fit
 export calculate_rmse, calculate_mae
@@ -52,15 +52,12 @@ include("ransac.jl")
 Unified entry function for DBH fitting.
     fit_dbh(x::AbstractVector, y::AbstractVector; method, skip_validation=false, kwargs...) -> CircleFitResult
     fit_dbh(points::AbstractVector{<:Point2D}; method, skip_validation=false, kwargs...) -> CircleFitResult
-    fit_dbh(x, y, config::FitConfig) -> CircleFitResult
 
 # Parameters
 
 - x, y: Coordinate vectors of points
 
 - points: Vector of Point2D
-
-- config: FitConfig configuration object
 
 - method: Fitting method, must be specified, options: :ls, :lm, :ransac
 
