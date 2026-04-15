@@ -23,7 +23,7 @@ Circle fitting algorithms for DBH (Diameter at Breast Height) and trunk diameter
 - 📊 **Visualization** - Plots.jl visualization support
 
 ## 📦 Installation
-
+### The Julia packages have not been released yet, and the project is still in the experimental stage
 ```julia
 using Pkg
 Pkg.add(url="https://github.com/hunterbuffer11/DBHFit.jl")

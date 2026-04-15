@@ -23,7 +23,7 @@
 - 📊 **可视化支持** - Plots 可视化扩展
 
 ## 📦 安装
-
+### 项目仍处于实验阶段，暂时未发布Julia包
 ```julia
 using Pkg
 Pkg.add(url="https://github.com/hunterbuffer11/DBHFit.jl")
