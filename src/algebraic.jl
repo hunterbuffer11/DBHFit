@@ -2,8 +2,8 @@
     1.algebraic_initial_guess(x, y) -> SVector{3}
     2.fit_circle_ls(x, y; kwargs...) -> CircleFitResult
 
-First,Compute initial estimate of a circle using the algebraic method (Kåsa method).only for reference to the function fit_circle_ls.
-Second,use the :lm method to fit the circle(Nonlinear least squares circle fitting).
+First,Compute initial estimate of a circle using the algebraic method (Kåsa method),only for reference to the function fit_circle_ls.
+Second,Use the :lm method to fit the circle(Nonlinear least squares circle fitting.
 """
 
 #1.algebraic_initial_guess

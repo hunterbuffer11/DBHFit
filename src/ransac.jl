@@ -2,13 +2,6 @@
     fit_circle_three_points(x1, y1, x2, y2, x3, y3)
 
 Fit a circle through three points.
-
-# Parameters
-- `x1, y1, x2, y2, x3, y3`: Coordinates of three points
-
-# Returns
-- `Tuple{Float64, Float64, Float64}`: (center_x, center_y, radius)
-- Returns (0.0, 0.0, -1.0) if points are collinear
 """
 function fit_circle_three_points(x1::T, y1::T, x2::T, y2::T, 
                                  x3::T, y3::T) where T<:Real
@@ -192,15 +185,6 @@ Fit a circle using RANSAC algorithm.
 Must satisfy one of:
 1. Specify both `max_trials` and `min_inliers`
 2. Set `optimize=true` to auto-optimize parameters
-
-# Examples
-```julia
-# Method 1: Manual parameters
-result = fit_circle_ransac(x, y; max_trials=200, min_inliers=50)
-
-# Method 2: Auto-optimization
-result = fit_circle_ransac(x, y; optimize=true, optimize_metric=:rmse)
-```
 """
 function fit_circle_ransac(x::AbstractVector{T}, y::AbstractVector{T}; 
                            max_trials::Union{Int,Nothing}=nothing, 

@@ -5,7 +5,7 @@ Professional DBH (Diameter at Breast Height) fitting Julia package, providing mu
 
 # Main Features
 
-- Three fitting algorithms: Least Squares (LS), Levenberg-Marquardt (LM), RANSAC
+- Three fitting algorithms: Linear Least Squares (LS), Nonlinear Least Squares[Levenberg-Marquardt (LM)], RANSAC
 - Unified API: `fit_dbh` function provides a unified interface
 - Optional visualization: Supports Plots.jl for visualizing results
 
