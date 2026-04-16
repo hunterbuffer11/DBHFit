@@ -49,14 +49,14 @@ function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
 end
 
 """
-    fit_circle_lm(x, y; max_iter=50, robust=true, huber_threshold=4.685, skip_validation=false) -> CircleFitResult
+    fit_circle_lm(x, y; max_iter=50, robust=false, huber_threshold=4.685, skip_validation=false) -> CircleFitResult
 
 Fit a circle using the Levenberg-Marquardt algorithm.
 
 # Parameters
 - `x, y`: Coordinate vectors of points
 - `max_iter`: Maximum number of iterations (default 50)
-- `robust`: Whether to use Huber robust weights (default true)
+- `robust`: Whether to use Huber robust weights (default false, changed from true)
 - `huber_threshold`: Huber threshold coefficient (default 4.685)
 - `skip_validation`: Whether to skip input validation (default false)
 
@@ -67,10 +67,15 @@ Fit a circle using the Levenberg-Marquardt algorithm.
 1. Use algebraic method as initial guess
 2. Iteratively optimize parameters
 3. Optional Huber robust weighting reduces influence of outliers
+
+# Note
+For high-quality point cloud data (typical for DBH measurements), 
+it is recommended to use `robust=false` (default) for better accuracy.
+Use `robust=true` only when there are significant outliers in the data.
 """
 function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T}; 
                        max_iter::Int=50,  
-                       robust::Bool=true,
+                       robust::Bool=false,
                        huber_threshold::Real=4.685,
                        skip_validation::Bool=false,
                        kwargs...) where T<:Real
@@ -86,27 +91,28 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     
     r = Vector{T}(undef, n)
     w = ones(T, n)
-    
-    for i in 1:n
-        ri, _ = residual_and_jacobian_row(x[i], y[i], p)
-        r[i] = ri
-    end
-    
-    if robust
-        mad = median(abs.(r))
-        threshold = huber_threshold * mad
-        w = huber_weight(r, threshold)
-    end
-    
-    err = sum(w .* r.^2)
+    err = typemax(T)
     
     for iter in 1:max_iter
+        # Step 1: Compute residuals
+        for i in 1:n
+            ri, _ = residual_and_jacobian_row(x[i], y[i], p)
+            r[i] = ri
+        end
+        
+        # Step 2: Update weights (before computing Hessian)
+        if robust
+            mad = median(abs.(r))
+            threshold = huber_threshold * mad
+            w = huber_weight(r, threshold)
+        end
+        
+        # Step 3: Compute weighted Hessian and gradient
         H = MMatrix{3,3,T,9}(zeros(T, 3, 3))
         g = MVector{3,T}(zeros(T, 3))
         
         for i in 1:n
             ri, Ji = residual_and_jacobian_row(x[i], y[i], p)
-            r[i] = ri
             
             sqrt_w = sqrt(w[i])
             Ji_w = sqrt_w * Ji
@@ -116,31 +122,24 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             g += Ji_w * ri_w
         end
         
+        # Step 4: Solve for parameter update
         H_damped = H + λ * Diagonal(SVector{3,T}(diag(H)))
         Δp = - H_damped \ g
         
         p_new = p + Δp
         
+        # Step 5: Compute new error
         err_new = zero(T)
         for i in 1:n
             ri_new, _ = residual_and_jacobian_row(x[i], y[i], p_new)
             err_new += w[i] * ri_new^2
         end
         
+        # Step 6: Accept or reject update
         if err_new < err
             λ /= ν
             p = p_new
             err = err_new
-            
-            if robust
-                for i in 1:n
-                    ri_new, _ = residual_and_jacobian_row(x[i], y[i], p)
-                    r[i] = ri_new
-                end
-                mad = median(abs.(r))
-                threshold = huber_threshold * mad
-                w = huber_weight(r, threshold)
-            end
             
             if norm(Δp) < tol
                 break
