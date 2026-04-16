@@ -2,54 +2,99 @@
     1.algebraic_initial_guess(x, y) -> SVector{3}
     2.fit_circle_ls(x, y; kwargs...) -> CircleFitResult
 
-First,Compute initial estimate of a circle using the algebraic method (Kåsa method),only for reference to the function fit_circle_ls.
-Second,Use the :lm method to fit the circle(Nonlinear least squares circle fitting.
+First,Compute initial estimate of a circle using Pratt's method (more robust than Kåsa).
+Second,Use the :ls method to fit the circle (algebraic least squares).
 """
 
 #1.algebraic_initial_guess
 """
-# Parameters
-
-- `x, y`: Coordinate vectors of points
-
-# Returns
-
-- `SVector{3}`: [center_x, center_y, radius]
-
+Compute initial estimate of a circle using Pratt's method.
 """
 function algebraic_initial_guess(x::AbstractVector{T}, 
                                  y::AbstractVector{T}) where T<:Real
     n = length(x)
     
-    # Calculate centroid
-    mx = sum(x) / n
-    my = sum(y) / n
+    # Compute moments
+    Sx = sum(x)
+    Sy = sum(y)
+    Sxx = sum(x.^2)
+    Syy = sum(y.^2)
+    Sxy = sum(x .* y)
+    Sxxx = sum(x.^3)
+    Syyy = sum(y.^3)
+    Sxxy = sum(x.^2 .* y)
+    Sxyy = sum(x .* y.^2)
+    Sxxxx = sum(x.^4)
+    Syyyy = sum(y.^4)
+    Sxxyy = sum(x.^2 .* y.^2)
     
-    # Centered coordinates
-    u = x .- mx
-    v = y .- my
+    # Build moment matrix M (4x4)
+    M = zeros(T, 4, 4)
+    M[1,1] = Sxxxx + 2*Sxxyy + Syyyy
+    M[1,2] = Sxxx + Sxyy
+    M[1,3] = Sxxy + Syyy
+    M[1,4] = Sxx + Syy
+    M[2,1] = M[1,2]
+    M[2,2] = Sxx
+    M[2,3] = Sxy
+    M[2,4] = Sx
+    M[3,1] = M[1,3]
+    M[3,2] = M[2,3]
+    M[3,3] = Syy
+    M[3,4] = Sy
+    M[4,1] = M[1,4]
+    M[4,2] = M[2,4]
+    M[4,3] = M[3,4]
+    M[4,4] = T(n)
     
-    # Calculate sums for the linear system
-    Suu = sum(u.^2)
-    Svv = sum(v.^2)
-    Suv = sum(u .* v)
-    Suuu = sum(u.^3)
-    Svvv = sum(v.^3)
-    Suvv = sum(u .* v.^2)
-    Svuu = sum(v .* u.^2)
+    # Build constraint matrix B (4x4)
+    # Constraint: A² + B² - 4C = 1
+    B = zeros(T, 4, 4)
+    B[2,2] = 1.0
+    B[3,3] = 1.0
+    B[4,4] = -4.0
     
-    # Construct a system of linear equations
-    A = SMatrix{2,2,T}(Suu, Suv, Suv, Svv)
-    b = SVector{2,T}(0.5 * (Suuu + Suvv), 0.5 * (Svvv + Svuu))
-    
-    # solve the linear system
-    uc, vc = A \ b
-    
-    xc = uc + mx
-    yc = vc + my
-    r = sqrt(uc^2 + vc^2 + (Suu + Svv) / n)
-    
-    return SVector{3,T}(xc, yc, r)
+    # Solve generalized eigenvalue problem: M*v = λ*B*v
+    try
+        F = eigen(Symmetric(M), Symmetric(B))
+        
+        # Find smallest positive eigenvalue
+        min_idx = 1
+        min_val = Inf
+        for i in 1:4
+            if F.values[i] > 0 && F.values[i] < min_val
+                min_val = F.values[i]
+                min_idx = i
+            end
+        end
+        
+        # Extract eigenvector
+        v = F.vectors[:, min_idx]
+        A_coef, B_coef, C_coef = v[2], v[3], v[4]
+        
+        # Extract circle parameters
+        xc = -A_coef / 2
+        yc = -B_coef / 2
+        val = (A_coef^2 + B_coef^2) / 4 - C_coef
+        
+        if val > 0
+            R = sqrt(val)
+        else
+            # Fallback
+            xc = Sx / n
+            yc = Sy / n
+            R = sqrt(max(0, (Sxx + Syy) / n - xc^2 - yc^2))
+        end
+        
+        return SVector{3,T}(xc, yc, R)
+        
+    catch
+        # Fallback to centroid-based estimate
+        xc = Sx / n
+        yc = Sy / n
+        R = sqrt(max(0, (Sxx + Syy) / n - xc^2 - yc^2))
+        return SVector{3,T}(xc, yc, R)
+    end
 end
 
 #2.fit_circle_ls
@@ -59,18 +104,14 @@ end
 Fit a circle using the least squares method.
 
 # Parameters
-
 - `x, y`: Coordinate vectors of points
 - `skip_validation`: Whether to skip input validation (default false)
 
 # Returns
-
 - `CircleFitResult`: Fitting result
-
 """
 function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T}; 
                        skip_validation::Bool=false, kwargs...) where T<:Real
-    # Validate input
     validate_input(x, y; skip_validation=skip_validation)
     
     n = length(x)
