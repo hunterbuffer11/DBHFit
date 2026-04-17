@@ -82,13 +82,14 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     ydata = zeros(T, n)
     
     fit = nothing
-    
+    lower = [-Inf, -Inf, 1e-8]
+    upper = [ Inf,  Inf, Inf]
     if robust
         for iter in 1:max_iter
             fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0, w;
                            maxIter=max_iter,# 设置参数下界，保证半径为正
-                           lower = [-Inf, -Inf, 1e-8],
-                           upper = [ Inf,  Inf, Inf])
+                           lower = lower,
+                           upper = upper)
             p0 = fit.param
             
             residuals = fit.resid
@@ -101,8 +102,8 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
         end
     else
         fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
-                       maxIter=max_iter,lower = [-Inf, -Inf, 1e-8],
-                           upper = [ Inf,  Inf, Inf])
+                       maxIter=max_iter, lower = lower,
+                           upper = upper)
     end
     
     if fit === nothing
