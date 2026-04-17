@@ -10,7 +10,7 @@ function circle_model(xdata, p)
     xc, yc, R = p
     x = @view xdata[1, :]
     y = @view xdata[2, :]
-    return @. sqrt((x - xc)^2 + (y - yc)^2) - R
+    return @. sqrt(max(eps(), (x - xc)^2 + (y - yc)^2)) - R
 end
 
 """
@@ -27,11 +27,11 @@ function circle_jacobian(xdata, p)
     @inbounds for i in 1:n
         dx = x[i] - xc
         dy = y[i] - yc
-        dist = sqrt(dx^2 + dy^2)
-        if dist < 1e-12
-            J[i, :] .= -1.0
+        dist_sq = dx^2 + dy^2
+        if dist_sq < eps()
+            J[i, :] .= 0.0
         else
-            inv_dist = 1.0 / dist
+            inv_dist = 1.0 / sqrt(dist_sq)
             J[i, 1] = -dx * inv_dist
             J[i, 2] = -dy * inv_dist
             J[i, 3] = -1.0
