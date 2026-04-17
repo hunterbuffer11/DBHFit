@@ -96,6 +96,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             end
             threshold = huber_threshold * mad_val
             w = huber_weight(residuals, threshold)
+            w = clamp.(w, 0.0, 1e6)
         end
     else
         fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
