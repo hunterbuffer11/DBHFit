@@ -109,7 +109,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     end
     
     xc, yc, R = fit.param
-    rmse = sqrt(fit.ssr / n)
+    rmse = sqrt(sum(abs2, fit.resid) / n)
     
     return CircleFitResult(T(xc), T(yc), T(R), T(rmse), :lm)
 end
