@@ -94,7 +94,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             if mad_val < 1e-10
                 break
             end
-            threshold = huber_threshold * median(abs.(residuals))
+            threshold = huber_threshold * maximum(abs.(residuals))
             w = huber_weight(residuals, threshold)
         end
     else
