@@ -70,7 +70,7 @@ Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T}; 
                        max_iter::Int=50,  
                        robust::Bool=false,
-                       tukey_threshold::Real=4.685,
+                       tukey_threshold::Real=1.685,
                        kwargs...) where T<:Real
     n = length(x)
     
