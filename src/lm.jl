@@ -38,7 +38,7 @@ function circle_jacobian(xdata, p)
         else
             J[i, 1] = -dx / dist
             J[i, 2] = -dy / dist
-            J[i, 3] = -1.0
+            J[i, 3] = 0.0
         end
     end
     return J
@@ -82,16 +82,15 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     ydata = zeros(T, n)
     
     fit = nothing
-
+    
     if robust
         for iter in 1:max_iter
-            fit = curve_fit(circle_model, xdata, ydata, p0, w;
-                           autodiff=:forwarddiff,
+            fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0, w;
                            maxIter=max_iter)
             p0 = fit.param
             
             residuals = fit.resid
-            mad_val = max(median(abs.(residuals)), 1e-8)
+            mad_val = median(abs.(residuals))
             if mad_val < 1e-10
                 break
             end
@@ -99,9 +98,8 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             w = huber_weight(residuals, threshold)
         end
     else
-        fit = curve_fit(circle_model, xdata, ydata, p0, w;
-                        autodiff=:forwarddiff,
-                        maxIter=max_iter)
+        fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
+                       maxIter=max_iter)
     end
     
     if fit === nothing
