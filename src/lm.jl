@@ -3,6 +3,7 @@ using Statistics
 
 """
     circle_model(xdata, p)
+
 Circle fitting model for LsqFit.
 """
 function circle_model(xdata, p)
@@ -80,8 +81,8 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     
     if robust
         for iter in 1:max_iter
-            fit = curve_fit(circle_model, xdata, ydata, p0;
-                           weights=w, jacobian=circle_jacobian, maxiter=max_iter)
+            fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0, w;
+                           maxIter=max_iter)
             p0 = fit.param
             
             residuals = fit.resid
@@ -93,8 +94,8 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             w = huber_weight(residuals, threshold)
         end
     else
-        fit = curve_fit(circle_model, xdata, ydata, p0;
-                       jacobian=circle_jacobian, maxiter=max_iter)
+        fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
+                       maxIter=max_iter)
     end
     
     if fit === nothing
