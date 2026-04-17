@@ -85,8 +85,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     
     if robust
         for iter in 1:max_iter
-            fit = curve_fit(circle_model, xdata, ydata, p0, w;
-                           autodiff=:forwarddiff,
+            fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, w, p0;
                            maxIter=max_iter)
             p0 = fit.param
             
@@ -100,8 +99,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             w = clamp.(w, 0.0, 1.0)
         end
     else
-        fit = curve_fit(circle_model, xdata, ydata, p0;
-                       autodiff=:forwarddiff,
+        fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
                        maxIter=max_iter)
     end
     
