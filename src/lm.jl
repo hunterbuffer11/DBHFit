@@ -86,11 +86,11 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     if robust
         for iter in 1:max_iter
             fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0, w;
-                           maxIter=max_iter, autodiff=:finite)
+                           maxIter=max_iter)
             p0 = fit.param
             
             residuals = fit.resid
-            mad_val = median(abs.(residuals))
+            mad_val = max(median(abs.(residuals)), 1e-8)
             if mad_val < 1e-10
                 break
             end
@@ -99,7 +99,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
         end
     else
         fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, p0;
-                       maxIter=max_iter, autodiff=:finite)
+                       maxIter=max_iter)
     end
     
     if fit === nothing
