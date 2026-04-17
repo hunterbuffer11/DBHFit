@@ -21,16 +21,7 @@ using Hyperopt
 # Export public API
 """
     plot_fit(x, y, result; kwargs...)
-
 Plot visualization graphics of the fitting result.
-
-The Plots.jl package is required to use this feature:
-```julia
-using Plots
-using DBHFit
-result = fit_dbh(x, y; method=:ls)
-plot_fit(x, y, result)
-```
 """
 function plot_fit end
 
@@ -82,20 +73,14 @@ function fit_dbh(x::AbstractVector{T}, y::AbstractVector{T};
     
     # Call the specific fitting method
     if method == :ls
-        return fit_circle_ls(x, y; skip_validation=true, kwargs...)
+        return fit_circle_ls(x, y; kwargs...)
     elseif method == :lm
-        return fit_circle_lm(x, y; skip_validation=true, kwargs...)
+        return fit_circle_lm(x, y; kwargs...)
     elseif method == :ransac
-        return fit_circle_ransac(x, y; skip_validation=true, kwargs...)
+        return fit_circle_ransac(x, y; kwargs...)
     else
         throw(ArgumentError("Unknown fitting method: $(method). Options: :ls, :lm, :ransac"))
     end
-end
-
-function fit_dbh(points::AbstractVector{<:Point2D}; kwargs...)
-    x = [p.x for p in points]
-    y = [p.y for p in points]
-    return fit_dbh(x, y; kwargs...)
 end
 
 end # module

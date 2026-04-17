@@ -111,9 +111,7 @@ Fit a circle using the least squares method.
 - `CircleFitResult`: Fitting result
 """
 function fit_circle_ls(x::AbstractVector{T}, y::AbstractVector{T}; 
-                       skip_validation::Bool=false, kwargs...) where T<:Real
-    validate_input(x, y; skip_validation=skip_validation)
-    
+                        kwargs...) where T<:Real
     n = length(x)
     
     Sx = Sy = Sxx = Sxy = Syy = Sxz = Syz = Sz = zero(T)

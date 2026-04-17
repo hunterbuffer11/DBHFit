@@ -30,17 +30,4 @@ function CircleFitResult(center_x::T, center_y::T, radius::T,
     return CircleFitResult{T}(center_x, center_y, radius, 2*radius, rmse, method)
 end
 
-"""
-    Point2D{T<:Real}
-
-2D point data structure.
-
-# Parameters
-- `x::T`: X coordinate
-- `y::T`: Y coordinate
-"""
-struct Point2D{T<:Real}
-    x::T
-    y::T
-end
 

@@ -22,13 +22,6 @@ end
     circle_jacobian((xi, yi), p)
 
 Jacobian for circle model (optional, improves speed and accuracy).
-
-# Parameters
-- `(xi, yi)`: Point coordinates (tuple)
-- `p`: Parameter vector [center_x, center_y, radius]
-
-# Returns
-- Jacobian row: [∂r/∂xc, ∂r/∂yc, ∂r/∂R]
 """
 function circle_jacobian((xi, yi), p)
     xc, yc, R = p
@@ -44,15 +37,6 @@ end
 
 """
     huber_weight(r, c)
-
-Compute Huber robust weights.
-
-# Parameters
-- `r`: Residual vector
-- `c`: Threshold parameter
-
-# Returns
-- Weight vector
 """
 function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
     return @. ifelse(abs(r) <= c, one(T), T(c / abs(r)))
@@ -72,20 +56,12 @@ Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 
 # Returns
 - `CircleFitResult`: Fitting result
-
-# Note
-For high-quality point cloud data (typical for DBH measurements), 
-it is recommended to use `robust=false` (default) for better accuracy.
-Use `robust=true` only when there are significant outliers in the data.
 """
 function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T}; 
                        max_iter::Int=50,  
                        robust::Bool=false,
                        huber_threshold::Real=4.685,
-                       skip_validation::Bool=false,
                        kwargs...) where T<:Real
-    validate_input(x, y; skip_validation=skip_validation)
-    
     n = length(x)
     
     # Initial guess using Pratt's method

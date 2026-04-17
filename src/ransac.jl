@@ -68,8 +68,7 @@ function _optimize_ransac_params_bayesian(x::AbstractVector{T}, y::AbstractVecto
                                           optimize_metric::Symbol=:rmse,
                                           n_iterations::Int=100) where T<:Real
     n = length(x)
-    
-    max_trials_range = (50, 500)
+    max_trials_range = (20, 300)
     min_samples_range = (max(3, ceil(Int, 0.05*n)), max(3, ceil(Int, 0.15*n)))
     
     function loss_function(max_trials, min_samples)
@@ -192,10 +191,7 @@ function fit_circle_ransac(x::AbstractVector{T}, y::AbstractVector{T};
                            min_inliers::Union{Int,Nothing}=nothing,
                            optimize::Bool=false,
                            optimize_metric::Symbol=:rmse,
-                           skip_validation::Bool=false,
                            kwargs...) where T<:Real
-    validate_input(x, y; skip_validation=skip_validation)
-    
     n = length(x)
     
     if !optimize
