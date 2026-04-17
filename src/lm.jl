@@ -13,8 +13,7 @@ function circle_model(xdata, p)
     n = length(x)
     result = zeros(n)
     @inbounds for i in 1:n
-        dist_sq = (x[i] - xc)^2 + (y[i] - yc)^2
-        result[i] = sqrt(max(1e-30, dist_sq)) - R
+        result[i] = hypot(x[i] - xc, y[i] - yc) - R
     end
     return result
 end
@@ -33,13 +32,12 @@ function circle_jacobian(xdata, p)
     @inbounds for i in 1:n
         dx = x[i] - xc
         dy = y[i] - yc
-        dist_sq = dx^2 + dy^2
-        if dist_sq < 1e-30
+        dist = hypot(dx, dy)
+        if dist < 1e-15
             J[i, :] .= 0.0
         else
-            inv_dist = 1.0 / sqrt(dist_sq)
-            J[i, 1] = -dx * inv_dist
-            J[i, 2] = -dy * inv_dist
+            J[i, 1] = -dx / dist
+            J[i, 2] = -dy / dist
             J[i, 3] = -1.0
         end
     end
