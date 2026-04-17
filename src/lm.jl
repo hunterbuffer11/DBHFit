@@ -45,24 +45,24 @@ function circle_jacobian(xdata, p)
 end
 
 """
-    huber_weight(r, c)
+    tukey_weight(r, c)
 
-Compute Huber robust weights.
+Compute Tukey robust weights.
 """
-function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
-    return @. ifelse(abs(r) <= c, one(T), T(c / abs(r)))
+function tukey_weight(r::AbstractVector{T}, c::Real) where T<:Real
+    return @. ifelse(abs(r) <= c, T((1.0 - (r/c)^2)^2), zero(T))
 end
 
 """
-    fit_circle_lm(x, y; max_iter=50, robust=false, huber_threshold=4.685) -> CircleFitResult
+    fit_circle_lm(x, y; max_iter=50, robust=false, tukey_threshold=4.685) -> CircleFitResult
 
 Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 
 # Parameters
 - `x, y`: Coordinate vectors of points
 - `max_iter`: Maximum number of iterations (default 50)
-- `robust`: Whether to use Huber robust weights (default false)
-- `huber_threshold`: Huber threshold coefficient (default 4.685)
+- `robust`: Whether to use Tukey robust weights (default false)
+- `tukey_threshold`: Tukey threshold coefficient (default 4.685)
 
 # Returns
 - `CircleFitResult`: Fitting result
@@ -70,7 +70,7 @@ Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T}; 
                        max_iter::Int=50,  
                        robust::Bool=false,
-                       huber_threshold::Real=4.685,
+                       tukey_threshold::Real=4.685,
                        kwargs...) where T<:Real
     n = length(x)
     
@@ -95,9 +95,9 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             if mad_val < 1e-10
                 break
             end
-            threshold = huber_threshold * mad_val
-            w = huber_weight(residuals, threshold)
-            w = clamp.(w, 0.0, 1e6)
+            threshold = tukey_threshold * mad_val
+            w = tukey_weight(residuals, threshold)
+            w = clamp.(w, 0.0, 1.0)
         end
     else
         fit = curve_fit(circle_model, xdata, ydata, p0;
