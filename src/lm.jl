@@ -1,5 +1,6 @@
 using LsqFit
 using Statistics
+
 """
     circle_model((xi, yi), p)
 
@@ -58,7 +59,7 @@ function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
 end
 
 """
-    fit_circle_lm(x, y; max_iter=50, robust=false, threshold=4.685, skip_validation=false) -> CircleFitResult
+    fit_circle_lm(x, y; max_iter=50, robust=false, huber_threshold=4.685, skip_validation=false) -> CircleFitResult
 
 Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 
@@ -66,16 +67,21 @@ Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 - `x, y`: Coordinate vectors of points
 - `max_iter`: Maximum number of iterations (default 50)
 - `robust`: Whether to use Huber robust weights (default false)
-- `threshold`: Huber threshold coefficient (default 4.685)
+- `huber_threshold`: Huber threshold coefficient (default 4.685)
 - `skip_validation`: Whether to skip input validation (default false)
 
 # Returns
 - `CircleFitResult`: Fitting result
+
+# Note
+For high-quality point cloud data (typical for DBH measurements), 
+it is recommended to use `robust=false` (default) for better accuracy.
+Use `robust=true` only when there are significant outliers in the data.
 """
 function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T}; 
                        max_iter::Int=50,  
                        robust::Bool=false,
-                       threshold::Real=4.685,
+                       huber_threshold::Real=4.685,
                        skip_validation::Bool=false,
                        kwargs...) where T<:Real
     validate_input(x, y; skip_validation=skip_validation)
@@ -91,7 +97,10 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     # Prepare data for LsqFit
     xdata = (x, y)
     ydata = zeros(T, n)  # Target: residuals should be zero
+    
+    # Initialize fit variable
     fit = nothing
+    
     # Perform LM optimization
     if robust
         # IRLS: Iteratively Reweighted Least Squares with Huber weights
@@ -104,8 +113,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
                 p0;
                 weights = w,                
                 jacobian = circle_jacobian,
-                maxiter = 10,
-                tolerance = tol
+                maxiter = max_iter
             )
             p0 = fit.param
             
@@ -117,7 +125,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             if mad_val < 1e-10
                 break
             end
-            threshold = threshold * mad_val
+            threshold = huber_threshold * mad_val
             w = huber_weight(residuals, threshold)
         end
     else
@@ -128,9 +136,13 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             ydata,                 
             p0;
             jacobian = circle_jacobian,
-            maxiter = 10,
-            tolerance = tol
+            maxiter = max_iter
         )
+    end
+    
+    # Safety check
+    if fit === nothing
+        error("LM fitting failed: fit object is not initialized")
     end
     
     xc, yc, R = fit.param
