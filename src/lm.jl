@@ -2,48 +2,54 @@ using LsqFit
 using Statistics
 
 """
-    circle_model((xi, yi), p)
-
+    circle_model(xdata, p)
 Circle fitting model for LsqFit.
-
-# Parameters
-- `(xi, yi)`: Point coordinates (tuple)
-- `p`: Parameter vector [center_x, center_y, radius]
-
-# Returns
-- Residual: signed distance from point to circle
 """
-function circle_model((xi, yi), p)
+function circle_model(xdata, p)
     xc, yc, R = p
-    return sqrt((xi - xc)^2 + (yi - yc)^2) - R
+    x = @view xdata[1, :]
+    y = @view xdata[2, :]
+    return @. sqrt((x - xc)^2 + (y - yc)^2) - R
 end
 
 """
-    circle_jacobian((xi, yi), p)
+    circle_jacobian(xdata, p)
 
-Jacobian for circle model (optional, improves speed and accuracy).
+Jacobian for circle model.
 """
-function circle_jacobian((xi, yi), p)
+function circle_jacobian(xdata, p)
     xc, yc, R = p
-    dx = xi - xc
-    dy = yi - yc
-    dist = sqrt(dx^2 + dy^2)
-    if dist < 1e-12
-        return [-1.0, -1.0, -1.0]
+    x = @view xdata[1, :]
+    y = @view xdata[2, :]
+    n = length(x)
+    J = zeros(n, 3)
+    @inbounds for i in 1:n
+        dx = x[i] - xc
+        dy = y[i] - yc
+        dist = sqrt(dx^2 + dy^2)
+        if dist < 1e-12
+            J[i, :] .= -1.0
+        else
+            inv_dist = 1.0 / dist
+            J[i, 1] = -dx * inv_dist
+            J[i, 2] = -dy * inv_dist
+            J[i, 3] = -1.0
+        end
     end
-    inv_dist = 1.0 / dist
-    return [-dx * inv_dist, -dy * inv_dist, -1.0]
+    return J
 end
 
 """
     huber_weight(r, c)
+
+Compute Huber robust weights.
 """
 function huber_weight(r::AbstractVector{T}, c::Real) where T<:Real
     return @. ifelse(abs(r) <= c, one(T), T(c / abs(r)))
 end
 
 """
-    fit_circle_lm(x, y; max_iter=50, robust=false, huber_threshold=4.685, skip_validation=false) -> CircleFitResult
+    fit_circle_lm(x, y; max_iter=50, robust=false, huber_threshold=4.685) -> CircleFitResult
 
 Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 
@@ -52,7 +58,6 @@ Fit a circle using Levenberg-Marquardt algorithm via LsqFit.jl.
 - `max_iter`: Maximum number of iterations (default 50)
 - `robust`: Whether to use Huber robust weights (default false)
 - `huber_threshold`: Huber threshold coefficient (default 4.685)
-- `skip_validation`: Whether to skip input validation (default false)
 
 # Returns
 - `CircleFitResult`: Fitting result
@@ -64,39 +69,22 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
                        kwargs...) where T<:Real
     n = length(x)
     
-    # Initial guess using Pratt's method
     p0 = Vector{T}(algebraic_initial_guess(x, y))
     
-    # Initial weights (all ones for standard least squares)
     w = ones(T, n)
     
-    # Prepare data for LsqFit
-    xdata = (x, y)
-    ydata = zeros(T, n)  # Target: residuals should be zero
+    xdata = hcat(x, y)'
+    ydata = zeros(T, n)
     
-    # Initialize fit variable
     fit = nothing
     
-    # Perform LM optimization
     if robust
-        # IRLS: Iteratively Reweighted Least Squares with Huber weights
         for iter in 1:max_iter
-            # Weighted LM fit
-            fit = curve_fit(
-                circle_model, 
-                xdata, 
-                ydata,                 
-                p0;
-                weights = w,                
-                jacobian = circle_jacobian,
-                maxiter = max_iter
-            )
+            fit = curve_fit(circle_model, xdata, ydata, p0;
+                           weights=w, jacobian=circle_jacobian, maxiter=max_iter)
             p0 = fit.param
             
-            # Compute residuals
             residuals = fit.resid
-            
-            # Update Huber weights using MAD
             mad_val = median(abs.(residuals))
             if mad_val < 1e-10
                 break
@@ -105,25 +93,15 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             w = huber_weight(residuals, threshold)
         end
     else
-        # Standard LM fit (no robust weighting)
-        fit = curve_fit(
-            circle_model, 
-            xdata, 
-            ydata,                 
-            p0;
-            jacobian = circle_jacobian,
-            maxiter = max_iter
-        )
+        fit = curve_fit(circle_model, xdata, ydata, p0;
+                       jacobian=circle_jacobian, maxiter=max_iter)
     end
     
-    # Safety check
     if fit === nothing
         error("LM fitting failed: fit object is not initialized")
     end
     
     xc, yc, R = fit.param
-    
-    # Compute RMSE
     rmse = sqrt(fit.ssr / n)
     
     return CircleFitResult(T(xc), T(yc), T(R), T(rmse), :lm)
