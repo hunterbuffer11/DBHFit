@@ -38,7 +38,7 @@ function circle_jacobian(xdata, p)
         else
             J[i, 1] = -dx / dist
             J[i, 2] = -dy / dist
-            J[i, 3] = 0.0
+            J[i, 3] = -1.0
         end
     end
     return J
@@ -90,11 +90,11 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
             p0 = fit.param
             
             residuals = fit.resid
-            mad_val = median(abs.(residuals))
+            #mad_val = median(abs.(residuals))
             if mad_val < 1e-10
                 break
             end
-            threshold = huber_threshold * mad_val
+            threshold = huber_threshold * median(abs.(residuals))
             w = huber_weight(residuals, threshold)
         end
     else
