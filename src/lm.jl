@@ -76,21 +76,22 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     
     p0 = Vector{T}(algebraic_initial_guess(x, y))
     
-    w = ones(T, n)
-    
     xdata = hcat(x, y)'
     ydata = zeros(T, n)
     
     fit = nothing
     
     if robust
+        w = ones(T, n)
         for iter in 1:max_iter
             fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, w, p0;
                            maxIter=max_iter)
             p0 = fit.param
             
             residuals = fit.resid
-            mad_val = max(median(abs.(residuals)), 1e-8)
+            r_median = median(abs.(residuals))
+            mad_val = max(median(abs.(residuals .- r_median)), 1e-8)
+            
             if mad_val < 1e-10
                 break
             end
