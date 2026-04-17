@@ -85,7 +85,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
         w = ones(T, n)
         for iter in 1:max_iter
             fit = curve_fit(circle_model, circle_jacobian, xdata, ydata, w, p0;
-                           maxIter=max_iter)
+                           maxIter=1)
             p0 = fit.param
             
             residuals = fit.resid
