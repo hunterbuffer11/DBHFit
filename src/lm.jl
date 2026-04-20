@@ -75,7 +75,7 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
     n = length(x)
     
     ls_result = fit_circle_ls(x, y)
-    p0 = Vector{T}[ls_result.center_x, ls_result.center_y, ls_result.radius]
+    p0 = T[ls_result.center_x, ls_result.center_y, ls_result.radius]
     
     xdata = hcat(x, y)'
     ydata = zeros(T, n)
