@@ -74,7 +74,8 @@ function fit_circle_lm(x::AbstractVector{T}, y::AbstractVector{T};
                        kwargs...) where T<:Real
     n = length(x)
     
-    p0 = Vector{T}(algebraic_initial_guess(x, y))
+    ls_result = fit_circle_ls(x, y)
+    p0 = Vector{T}[ls_result.center_x, ls_result.center_y, ls_result.radius]
     
     xdata = hcat(x, y)'
     ydata = zeros(T, n)
